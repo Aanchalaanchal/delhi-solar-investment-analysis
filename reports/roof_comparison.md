@@ -45,3 +45,16 @@ Illustrative defaults:
 The dashboard's financial model allocates the premium only to the capacity above the base-roof ceiling. It assumes identical annual PV yield for base and canopy modules. It does not simulate canopy height, shading, airflow, solar azimuth, drainage, access, structural loading, waterproofing, wind uplift, permissions or usable clearance below. All require a design-stage assessment.
 
 Do not add the canopy footprint to base area if the spaces overlap: that would double-count roof surface.
+
+
+## Canopy height and shading sensitivity (model v0.3)
+
+The dashboard now compares three cases: Final Plan regular rooftop PV; Final Plan rooftop PV plus elevated canopy; and A11_8VV Model regular rooftop PV.
+
+Canopy clearance defaults to 2.7 m. The geometric shadow length is `clearance / tan(solar elevation)`, with a default illustrative sun elevation of 35°. This describes a shadow's reach **on the terrace**, not panel shading or annual energy loss. Neither the sun elevation nor the clearance is measured from the plans.
+
+Separately, the dashboard has a user-selected annual loss on **canopy panel generation** from possible external obstructions (default 5%). The financial model applies this loss only to the capacity allocated to the canopy, not to base-roof panels. The canopy structural premium remains allocated only to canopy capacity.
+
+This is a scenario stress test, not hourly solar-position modeling or 3D ray tracing. Shadow azimuth, module orientation, local obstacles, seasonal variations, neighboring buildings, electrical string effects, panel temperature and canopy wind uplift are not represented. In particular, shade on the occupied terrace underneath does not imply shade on panels above.
+
+No property-identifying architectural PDFs are committed to the public repository.
