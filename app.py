@@ -228,3 +228,34 @@ grid_df=pd.DataFrame(grid_rows)
 st.subheader("Sensitivity: demand, tariff and canopy premium")
 st.dataframe(grid_df,use_container_width=True,hide_index=True)
 st.caption("These results assume annual offset of generation up to annual demand, with no export value, no subsidy, and no hourly self-consumption matching. Four households may have separate meters; financial aggregation may be inappropriate. Do not treat the optimum as a procurement recommendation.")
+
+st.divider()
+st.header("Four separate account holders — proposed VNM allocation")
+st.caption("Each floor has its own electricity account holder. VNM is a candidate arrangement, subject to DISCOM approval and an allocation agreement. This model is not an official billing calculator.")
+from src.four_meter_allocation import Meter, allocate_vnm
+four_cols=st.columns(4)
+meter_demands=[]
+meter_shares=[]
+for i,col in enumerate(four_cols):
+    with col:
+        st.subheader(f"Family {i+1}")
+        meter_demands.append(st.number_input("Annual demand (kWh)",min_value=0.0,
+            max_value=100000.0,value=12000.0,step=1000.0,key=f"meter_demand_{i}"))
+        meter_shares.append(st.number_input("Ownership / credit allocation (%)",min_value=0.0,
+            max_value=100.0,value=25.0,step=5.0,key=f"meter_share_{i}"))
+if abs(sum(meter_shares)-100)>0.00001:
+    st.error("Four credit shares must sum to 100%.")
+else:
+    meters=[Meter(f"Family {i+1}",meter_demands[i],meter_shares[i]/100) for i in range(4)]
+    from src.four_meter_allocation import allocate_vnm
+    shared_kw=st.slider("Shared PV capacity (kW)",0.5,30.0,16.0,0.5)
+    shared_canopy_kw=st.slider("Of which: canopy panels (kW)",0.0,shared_kw,
+        min(3.5,shared_kw),0.5)
+    meter_results=allocate_vnm(shared_kw,meters,
+        replace(a,annual_kwh_per_kw=typical_base if "typical_base" in locals() else 1414.733847),
+        canopy_kw=shared_canopy_kw,canopy_premium_inr_per_kw=family_premium,
+        canopy_generation_loss_fraction=canopy_shade)
+    st.dataframe(pd.DataFrame(meter_results),use_container_width=True,hide_index=True)
+    st.metric("Total illustrative shared-system NPV",
+        f'₹{sum(r["npv_inr"] for r in meter_results):,.0f}')
+st.caption("Each meter's modeled savings are capped at its own annual demand. Actual VNM billing, tariff slabs, allocation agreement, approved plant capacity, grid charges and eligibility must be verified with the serving DISCOM.")
