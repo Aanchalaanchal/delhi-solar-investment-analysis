@@ -17,3 +17,20 @@ def test_invalid_capacity():
 
 def test_compare():
     assert len(compare([1,2,3],Assumptions()))==3
+
+def test_inverter_replacement_reduces_npv():
+    a=Assumptions(inverter_replacement_inr_per_kw=0)
+    b=Assumptions(inverter_replacement_inr_per_kw=10000)
+    assert evaluate(3,b)["npv_inr"]<evaluate(3,a)["npv_inr"]
+
+def test_discounted_payback_not_earlier_than_simple():
+    r=evaluate(3,Assumptions())
+    if r["discounted_payback_years"] is not None:
+        assert r["discounted_payback_years"]>=r["payback_years"]
+
+def test_zero_generation_negative_npv():
+    assert evaluate(3,Assumptions(annual_kwh_per_kw=0))["npv_inr"]<0
+
+def test_negative_degradation_rejected():
+    with pytest.raises(ValueError):
+        evaluate(3,Assumptions(degradation=-0.01))
