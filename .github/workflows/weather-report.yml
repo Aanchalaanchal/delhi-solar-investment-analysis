@@ -1,0 +1,30 @@
+name: Historical Delhi solar generation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/pv_generation.py'
+      - 'src/weather.py'
+      - 'scripts/build_weather_report.py'
+      - '.github/workflows/weather-report.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Fetch NASA POWER and calculate solar yield
+        run: python -m scripts.build_weather_report --start 2023 --end 2025
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vasant-vihar-solar-weather-report
+          path: |
+            data/raw/nasa_power_delhi_hourly.csv
+            reports/hourly_pv_generation.csv
+            reports/annual_pv_yield.csv
+            reports/monthly_pv_yield.csv
+          retention-days: 30
