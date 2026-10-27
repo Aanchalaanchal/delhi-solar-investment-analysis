@@ -33,3 +33,36 @@ df=pd.DataFrame([{k:v for k,v in r.items() if k!="cashflows_inr"} for r in resul
 st.plotly_chart(px.line(df,x="capacity_kw",y="npv_inr",markers=True,title="NPV by installed capacity"),use_container_width=True)
 st.dataframe(df,use_container_width=True,hide_index=True)
 st.caption("Annual aggregate proxy only: ignores hourly matching, tiered tariffs, meter allocation, export settlement, subsidies, inverter replacement and financing. Do not use for a purchase decision.")
+
+
+st.divider()
+st.header("Compare both architectural roof plans")
+st.caption("The following roof areas are adjustable placeholders, NOT measurements from the drawings. Original plans are not published.")
+from src.roof_scenarios import SCENARIOS, RoofScenario, analyze_roof
+roof_cols=st.columns(2)
+roof_comparisons=[]
+for col,source in zip(roof_cols,SCENARIOS):
+    with col:
+        st.subheader(source.title)
+        st.write(source.description)
+        chosen_area=st.number_input("Assumed usable PV area (m²)",min_value=0.0,
+            max_value=500.0,value=source.usable_area_m2,step=5.0,key="roof_"+source.key)
+        area_per_kw=st.number_input("Required roof area (m²/kW)",min_value=4.0,
+            max_value=20.0,value=8.0,step=0.5,key="density_"+source.key)
+        scenario=RoofScenario(source.key,source.title,source.description,chosen_area,area_per_kw)
+        comparison=analyze_roof(scenario,a)
+        roof_comparisons.append(comparison)
+        st.metric("Illustrative area-limited capacity",f'{comparison["maximum_kw"]:.1f} kW')
+        if comparison["best"]:
+            st.metric("Highest positive-NPV system",f'{comparison["best"]["capacity_kw"]:.1f} kW')
+            st.metric("Illustrative NPV",f'₹{comparison["best"]["npv_inr"]:,.0f}')
+        else:
+            st.info("No positive-NPV system in the tested capacity range.")
+roof_rows=[{"Design":x["scenario"].title,
+            "Assumed usable area (m²)":x["scenario"].usable_area_m2,
+            "Area-limited capacity (kW)":x["maximum_kw"],
+            "Best positive-NPV capacity (kW)":x["best"]["capacity_kw"] if x["best"] else 0,
+            "Best NPV (₹)":x["best"]["npv_inr"] if x["best"] else 0}
+           for x in roof_comparisons]
+st.dataframe(pd.DataFrame(roof_rows),use_container_width=True,hide_index=True)
+st.caption("This comparison assumes the same annual demand and tariff inputs for both designs; actual separate-meter allocation remains unresolved.")
