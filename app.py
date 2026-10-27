@@ -285,3 +285,18 @@ st.dataframe(pd.DataFrame(one_meter_rows),hide_index=True,use_container_width=Tr
 st.metric("Modeled canopy incremental NPV for combined meter",
     f'₹{one_meter_rows[1]["incremental_npv_vs_final_inr"]:,.0f}')
 st.caption("This is an annual-offset approximation, not a BRPL net-metering bill simulation. Verify approved single-meter connection, sanctioned load, PV capacity limits, export settlement, and actual roof space before purchasing.")
+
+st.divider()
+st.header("Integrated investment study — four family floors, one combined meter")
+st.caption("Scenario-complete, not engineering-approved: hourly building load and PV shapes are synthetic; COP, costs, tariffs and roof space are adjustable assumptions documented in the study.")
+from src.integrated_feasibility import all_cases, HVACS, ROOFS, hourly_profiles, dispatch
+study_rows=all_cases()
+selected_credit=st.select_slider("Export compensation sensitivity (fraction of assumed retail value; NOT an official BRPL rate)",options=[0.0,0.5,1.0],value=0.0,key="integrated_credit")
+study_df=pd.DataFrame([r for r in study_rows if r["export_credit_fraction_assumption"]==selected_credit])
+st.dataframe(study_df,use_container_width=True,hide_index=True)
+best_study=study_df.loc[study_df["npv_inr"].idxmax()]
+s1,s2,s3=st.columns(3)
+s1.metric("Highest modeled solar NPV",f'₹{best_study["npv_inr"]:,.0f}')
+s2.metric("Associated PV size",f'{best_study["capacity_kw"]:.1f} kW')
+s3.metric("Building annual demand",f'{best_study["building_annual_kwh"]:,.0f} kWh')
+st.caption("Solar NPV compares PV with no PV within each HVAC option. HVAC capital cost is NOT included in solar NPV; do not use this table alone to rank HVAC systems. Annual hourly shapes are synthetic, and the 2026 Delhi policy amendment must be checked for actual subsidies and credits.")
