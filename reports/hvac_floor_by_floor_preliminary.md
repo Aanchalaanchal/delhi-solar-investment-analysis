@@ -12,7 +12,7 @@ Machine-readable room-by-room transcription: `data/hvac_room_schedule_preliminar
 | Ground | 1,415 | 219 | Four bedrooms plus combined drawing/dining; hallways, foyer, dressers, bathrooms and other zones omitted |
 | First | 1,622 | 200 | Four bedrooms and separate drawing/dining; corridors, foyer and other zones omitted |
 | Second | 1,622 | 200 | Repeated first-floor layout provisionally transcribed; verify all rooms against CAD |
-| Third | 699 | 197 | Only three bedrooms legible in current extraction; master bedroom and drawing/dining **not counted**, so total is substantially incomplete |
+| Third | 1,622 | 197 | Visual review of sheet p5 confirms master bedroom, drawing room and dining; approximate dimensions transcribed and require CAD check |
 
 These sums are **NOT total conditioned floor areas**. They should not be compared with total plot area or used to select a TR rating. Kitchens are separately flagged because whether they are actively air-conditioned, and how cooking exhaust/make-up air is handled, must be decided. Dressing rooms, foyers, halls, staff rooms, toilets, lobbies, lifts, balconies, stairs, stilt parking and basement require individual classification. Toilets and kitchens require ventilation treatment even if not cooled.
 
@@ -34,7 +34,15 @@ The alternative A11_8VV model labels the plot as 63 × 90 ft (5,670 sq ft); this
 5. Equipment-level whole-system seasonal COP including outdoor fans, indoor fans, pumps and controls; quotes from multiple suppliers.
 6. Electrical maximum demand, power-factor and sanctioned-load review with BRPL, and hourly cooling profiles for PV economics.
 
-**No engineering cooling-capacity recommendation is made here.** The earlier 40 TR example is an illustrative scenario only, not a result from these drawings. The previous 2,500–3,500 sq ft/floor range was also a placeholder, not a measurement.
+**No engineering cooling-capacity recommendation is made here.** The earlier 40 TR example is an illustrative scenario only, not a result from these drawings. A reproducible comparison using illustrative seasonal COPs and budgetary ₹/TR ranges is available in `src/hvac_comparison.py`. The previous 2,500–3,500 sq ft/floor range was also a placeholder, not a measurement.
 
 ## Next modeling milestone
 Once the architect supplies room area schedules and the HVAC consultant supplies design loads, populate a complete room inventory with room sensible/latent peak kW, system allocation, cooling-season hourly profiles, and installed electrical input kW. Feed those hourly loads into the existing PV-generation workflow; do not estimate PV self-consumption solely from annual kWh.
+
+## Updated coverage and comparison (concept only)
+
+The third-floor sheet was visually checked: a fourth (master) bedroom, drawing room and dining room are visible. Approximate labeled dimensions have been added to the CSV. Principal-room inventory now totals **1,415 sq ft ground**, **1,622 sq ft first**, **1,622 sq ft second**, and **1,622 sq ft third**; kitchens are separately **219, 200, 200, 197 sq ft**. These are sums of selected room rectangles, **not** measured net air-conditioned floor areas; omitted foyers, dressers, halls, staff areas, etc. remain to be measured.
+
+A provisional comparison is encoded in `src/hvac_comparison.py`: VRF seasonal COP 4.3 and ₹80k–₹150k/TR, air-cooled chiller COP 3.8 and ₹90k–₹170k/TR, ducted inverter split COP 3.3 and ₹55k–₹100k/TR. All are **unverified planning assumptions**, not Delhi supplier bids. At an *arbitrary* 40 TR, 924 equivalent full-load hours/year, and ₹9/kWh, cooling electricity is about 30,200 kWh/year (VRF), 34,200 (chiller), or 39,400 (ducted); respective budgetary installation ranges are ₹32–60 lakh, ₹36–68 lakh and ₹22–40 lakh. They exclude other building loads and do not establish actual installed TR.
+
+**Unresolved before a complete engineered schedule:** CAD room polygons/areas and dimensions, glazing and envelope properties, ventilation, floor-specific solar exposures, occupancy, and HVAC consultant room-level sensible/latent loads. The architectural PDF cannot establish those engineering inputs, so the project must not label this an engineered equipment selection.
