@@ -21,3 +21,25 @@ def test_invalid_roof_area():
 def test_tiny_roof_has_no_options():
     r=analyze_roof(RoofScenario("x","X","",2),Assumptions())
     assert r["results"]==[]
+
+
+from src.roof_scenarios import analyze_elevated_canopy
+
+def test_canopy_adds_capacity():
+    roof=RoofScenario("x","X","",80,8)
+    r=analyze_elevated_canopy(roof,Assumptions(),40,0.75,20000)
+    assert r["base_limit_kw"]==10
+    assert r["canopy_limit_kw"]==3.75
+    assert r["total_limit_kw"]==13.75
+
+def test_canopy_cost_premium_only_on_canopy():
+    roof=RoofScenario("x","X","",80,8)
+    a=Assumptions()
+    base=analyze_elevated_canopy(roof,a,40,0.75,0)
+    premium=analyze_elevated_canopy(roof,a,40,0.75,20000)
+    assert base["results"][0]["npv_inr"]==premium["results"][0]["npv_inr"]
+    assert premium["results"][-1]["npv_inr"]<base["results"][-1]["npv_inr"]
+
+def test_canopy_rejects_overlap_fraction():
+    with pytest.raises(ValueError):
+        analyze_elevated_canopy(RoofScenario("x","X","",80),Assumptions(),40,1.5)
