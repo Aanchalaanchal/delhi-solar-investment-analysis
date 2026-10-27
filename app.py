@@ -76,7 +76,15 @@ canopy_area=st.slider("Additional canopy footprint above leisure space (m²)",0,
 canopy_coverage=st.slider("Canopy PV coverage (%)",25,100,75,5)/100
 canopy_premium=st.number_input("Extra canopy structural/installation premium (₹/kW)",0.0,100000.0,20000.0,1000.0)
 final_base=roof_comparisons[0]["scenario"]
-canopy_result=analyze_elevated_canopy(final_base,a,canopy_area,canopy_coverage,canopy_premium)
+from src.canopy_shading import CanopyGeometry, canopy_shadow_summary
+height=st.slider("Canopy underside clearance (m)",2.0,4.5,2.7,0.1)
+elevation=st.slider("Illustrative sun elevation (degrees)",10,90,35,5)
+panel_shading_loss=st.slider("Annual generation loss on canopy panels from external shading (%)",0,50,5,1)/100
+geometry=canopy_shadow_summary(CanopyGeometry(clearance_m=height,solar_elevation_deg=elevation))
+st.metric("Illustrative shadow reach on terrace",f'{geometry["shadow_length_m"]:.1f} m')
+st.caption("This is a single-angle geometric shadow length, not an hourly sun-path simulation.")
+canopy_result=analyze_elevated_canopy(final_base,a,canopy_area,canopy_coverage,canopy_premium,
+                                     canopy_generation_loss_fraction=panel_shading_loss)
 p1,p2,p3=st.columns(3)
 p1.metric("Base roof capacity ceiling",f'{canopy_result["base_limit_kw"]:.1f} kW')
 p2.metric("Additional canopy capacity ceiling",f'{canopy_result["canopy_limit_kw"]:.1f} kW')
@@ -88,3 +96,22 @@ if canopy_result["best"]:
 else:
     st.info("No positive-NPV system under the current canopy assumptions.")
 st.caption("Canopy footprint must be outside the base PV-usable area. The model uses a blended cost premium and does not account for column placement, wind uplift, shade, fire access, waterproofing, permissions, or structural loads.")
+
+st.subheader("Three-way design comparison")
+base_final=roof_comparisons[0]["best"]
+base_model=roof_comparisons[1]["best"]
+canopy_best=canopy_result["best"]
+comparison_rows=[
+ {"Design":"Final Plan — regular roof only","Best modeled kW":base_final["capacity_kw"] if base_final else 0,
+  "NPV (₹)":base_final["npv_inr"] if base_final else 0},
+ {"Design":"Final Plan — roof + elevated canopy","Best modeled kW":canopy_best["capacity_kw"] if canopy_best else 0,
+  "NPV (₹)":canopy_best["npv_inr"] if canopy_best else 0},
+ {"Design":"A11_8VV Model — regular roof","Best modeled kW":base_model["capacity_kw"] if base_model else 0,
+  "NPV (₹)":base_model["npv_inr"] if base_model else 0},
+]
+comparison_df=pd.DataFrame(comparison_rows)
+st.dataframe(comparison_df,use_container_width=True,hide_index=True)
+st.plotly_chart(px.bar(comparison_df,x="Design",y="NPV (₹)",
+                      title="Illustrative 25-year NPV across three designs"),
+                use_container_width=True)
+st.caption("No-installation is represented as 0 kW and ₹0 NPV when all tested PV options have negative NPV. The comparison does not establish actual buildable capacity.")
