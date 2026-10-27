@@ -41,7 +41,8 @@ def analyze_roof(scenario: RoofScenario, assumptions: Assumptions, step_kw: floa
 
 def analyze_elevated_canopy(base: RoofScenario, assumptions: Assumptions,
                             canopy_footprint_m2: float, canopy_coverage_fraction: float = 0.75,
-                            canopy_premium_inr_per_kw: float = 20000, step_kw: float = 0.5):
+                            canopy_premium_inr_per_kw: float = 20000, step_kw: float = 0.5,
+                            canopy_generation_loss_fraction: float = 0.0):
     """Explore canopy capacity and extra structural cost without double-counting roof area.
 
     Canopy footprint is additional space above a terrace otherwise reserved for use.
@@ -51,7 +52,7 @@ def analyze_elevated_canopy(base: RoofScenario, assumptions: Assumptions,
     from dataclasses import replace
     if canopy_footprint_m2 < 0 or not 0 <= canopy_coverage_fraction <= 1:
         raise ValueError("Invalid canopy footprint or coverage")
-    if canopy_premium_inr_per_kw < 0 or step_kw <= 0:
+    if canopy_premium_inr_per_kw < 0 or step_kw <= 0 or not 0 <= canopy_generation_loss_fraction <= 1:
         raise ValueError("Invalid canopy premium or step")
     base_limit = base.maximum_kw
     canopy_limit = canopy_footprint_m2 * canopy_coverage_fraction / base.area_per_kw_m2
@@ -63,10 +64,13 @@ def analyze_elevated_canopy(base: RoofScenario, assumptions: Assumptions,
         # Blended installation price allocates premium only to capacity over base roof.
         blended_price = (capacity * assumptions.installation_inr_per_kw +
                          canopy_kw * canopy_premium_inr_per_kw) / capacity
+        effective_yield = assumptions.annual_kwh_per_kw * (1 - (canopy_kw / capacity) * canopy_generation_loss_fraction)
         result = __import__("src.financial_model", fromlist=["evaluate"]).evaluate(
-            capacity, replace(assumptions, installation_inr_per_kw=blended_price))
+            capacity, replace(assumptions, installation_inr_per_kw=blended_price,
+                              annual_kwh_per_kw=effective_yield))
         result["canopy_kw"] = canopy_kw
         result["canopy_premium_inr"] = canopy_kw * canopy_premium_inr_per_kw
+        result["canopy_generation_loss_fraction"] = canopy_generation_loss_fraction
         candidates.append(result)
     best = max(candidates, key=lambda r: r["npv_inr"]) if candidates else None
     if best is not None and best["npv_inr"] <= 0:
