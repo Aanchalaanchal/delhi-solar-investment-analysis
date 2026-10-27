@@ -69,7 +69,7 @@ def solar_case(hvac,roof,case,capacity_kw):
     for i,cf in enumerate(flows[1:],1):
         cumulative+=cf
         if cumulative>=0 and payback is None:payback=i
-    # IRR via bisection on conventional cashflows if NPV crosses the bracket.
+    # IRR via bracketed bisection; nonconventional flows may have multiple IRRs.
     def f(rate):return sum(cf/(1+rate)**i for i,cf in enumerate(flows))
     lo,hi=-.9,2.0
     irr=None
