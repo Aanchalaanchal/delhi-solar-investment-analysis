@@ -259,3 +259,26 @@ else:
     st.metric("Total illustrative shared-system NPV",
         f'₹{sum(r["npv_inr"] for r in meter_results):,.0f}')
 st.caption("Each meter's modeled savings are capped at its own annual demand. Actual VNM billing, tariff slabs, allocation agreement, approved plant capacity, grid charges and eligibility must be verified with the serving DISCOM.")
+
+st.divider()
+st.header("Building electricity bill → demand sensitivity")
+st.caption("You reported ₹80,000–₹1,00,000 per month for the whole building. The bill alone does not reveal kWh; these estimates use a selectable effective tariff and are NOT actual meter readings.")
+from src.bill_based_demand import bill_scenarios,canopy_bill_scenarios
+bill_min=st.number_input("Combined monthly bill — low (₹)",min_value=0,value=80000,step=5000)
+bill_max=st.number_input("Combined monthly bill — high (₹)",min_value=0,value=100000,step=5000)
+if bill_max<bill_min:
+    st.error("The maximum bill must be at least the minimum.")
+else:
+    rates=st.multiselect("Illustrative effective tariff assumptions (₹/kWh)",
+        options=[5,6,7,8,9,10,11,12,13,14,15],default=[7,9,10])
+    if rates:
+        st.dataframe(pd.DataFrame(bill_scenarios(bill_min,bill_max,rates)),
+            use_container_width=True,hide_index=True)
+        st.subheader("Roof and canopy sizing under the bill-derived scenarios")
+        st.dataframe(pd.DataFrame(canopy_bill_scenarios(bill_min,bill_max,rates,
+            canopy_footprint_m2=canopy_area,canopy_coverage_fraction=canopy_coverage,
+            canopy_shade_loss=canopy_shade,canopy_premium_inr_kw=family_premium,
+            base_install_inr_kw=installed_cost,discount_rate=discount,
+            annual_yield_kwh_kw=typical_base if "typical_base" in locals() else 1414.733847)),
+            use_container_width=True,hide_index=True)
+st.caption("The four floors have separate BRPL account holders. This combined-bill sensitivity cannot determine each meter's savings or confirm VNM eligibility. Enter each family's actual annual kWh in the four-meter section when available.")
