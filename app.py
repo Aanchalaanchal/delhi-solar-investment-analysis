@@ -143,3 +143,55 @@ st.plotly_chart(px.line(orientation,x="local_hour",y="Direct-beam incidence fact
                         color="Panel direction",title="Orientation geometry for a selected day"),
                 use_container_width=True)
 st.caption("These curves are unitless geometric factors, not kWh. They exclude clouds, diffuse irradiance, roof obstruction shading, dust, and PV system losses. The three design NPV comparisons above still use user-entered annual yield.")
+
+st.divider()
+st.header("Historical weather-adjusted PV generation")
+st.caption("Uses hourly NASA POWER satellite/reanalysis GHI and temperature, with pvlib Erbs decomposition and isotropic transposition. This is not a roof shade survey.")
+from pathlib import Path
+from dataclasses import replace
+from src.pv_generation import PVSettings, estimate_hourly_generation, annual_yield, monthly_generation
+weather_path=Path("data/raw/nasa_power_delhi_hourly.csv")
+if weather_path.exists():
+    try:
+        weather=pd.read_csv(weather_path)
+        weather_tilt=st.slider("Weather model panel tilt (degrees)",0,60,20,1,key="weather_tilt")
+        weather_azimuth=st.slider("Weather model panel azimuth (degrees clockwise from north)",0,360,180,5)
+        pr=st.slider("System performance ratio (includes aggregate PV losses)",0.5,1.0,0.80,0.01)
+        canopy_shade=st.slider("Canopy panel shading loss for weather model (%)",0,50,5,1)/100
+        hourly=estimate_hourly_generation(weather,PVSettings(
+            tilt_deg=weather_tilt,azimuth_deg=weather_azimuth,
+            performance_ratio=pr,canopy_panel_shade_loss=canopy_shade))
+        annual=annual_yield(hourly)
+        if annual.empty:
+            st.error("No complete weather years found.")
+        else:
+            st.dataframe(annual,use_container_width=True,hide_index=True)
+            monthly=monthly_generation(hourly)
+            # Monthly mean over available complete-year data, grouped by India-local month.
+            typical=monthly.groupby("month",as_index=False)[["base_kwh_per_kw","canopy_kwh_per_kw"]].mean()
+            st.plotly_chart(px.line(typical,x="month",y=["base_kwh_per_kw","canopy_kwh_per_kw"],
+                markers=True,title="Monthly generation per installed kW (weather-adjusted proxy)"),
+                use_container_width=True)
+            typical_base=float(annual["base_kwh_per_kw"].mean())
+            typical_canopy=float(annual["canopy_kwh_per_kw"].mean())
+            st.metric("Annual regular roof yield (kWh/kW)",f"{typical_base:,.0f}")
+            st.metric("Annual canopy yield (kWh/kW)",f"{typical_canopy:,.0f}")
+            from src.roof_scenarios import analyze_elevated_canopy
+            weather_assumptions=replace(a,annual_kwh_per_kw=typical_base)
+            wx_final=analyze_roof(roof_comparisons[0]["scenario"],weather_assumptions)["best"]
+            wx_model=analyze_roof(roof_comparisons[1]["scenario"],weather_assumptions)["best"]
+            wx_canopy=analyze_elevated_canopy(final_base,weather_assumptions,canopy_area,
+                canopy_coverage,canopy_premium,canopy_generation_loss_fraction=canopy_shade)["best"]
+            weather_rows=[
+                {"Design":"Final Plan — regular roof","Best kW":wx_final["capacity_kw"] if wx_final else 0,"NPV (₹)":wx_final["npv_inr"] if wx_final else 0},
+                {"Design":"Final Plan — elevated canopy","Best kW":wx_canopy["capacity_kw"] if wx_canopy else 0,"NPV (₹)":wx_canopy["npv_inr"] if wx_canopy else 0},
+                {"Design":"A11_8VV Model","Best kW":wx_model["capacity_kw"] if wx_model else 0,"NPV (₹)":wx_model["npv_inr"] if wx_model else 0},
+            ]
+            st.subheader("Weather-adjusted three-design financial comparison")
+            st.dataframe(pd.DataFrame(weather_rows),use_container_width=True,hide_index=True)
+            st.caption("NPV still assumes annual energy offset, illustrative tariff and installation cost. Weather-based generation is annualized into the existing finance engine, not hourly matched to consumption.")
+    except (ValueError,KeyError,TypeError) as exc:
+        st.error(f"Could not validate hourly weather data: {exc}")
+else:
+    st.info("Historical weather CSV not yet downloaded. Run: python -m scripts.download_weather --start 2023 --end 2025")
+    st.caption("No historical kWh results are shown until actual data are available.")
