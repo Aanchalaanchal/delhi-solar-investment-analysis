@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - "src/integrated_feasibility.py"
+      - "src/no_bid_investment_analysis.py"
+      - "tests/test_no_bid_investment_analysis.py"
       - "src/hvac_room_schedule.py"
       - "data/hvac_room_schedule_preliminary.csv"
       - "tests/test_integrated_feasibility.py"
@@ -20,10 +22,14 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -m pytest -q
       - run: python -m src.integrated_feasibility
+      - run: python -m src.no_bid_investment_analysis
       - uses: actions/upload-artifact@v4
         with:
           name: single-meter-hvac-solar-feasibility
           path: |
             reports/generated/scenario_matrix.csv
             reports/generated/results.json
+            reports/generated/hvac_15y_tco.csv
+            reports/generated/solar_25y_sensitivity.csv
+            reports/generated/combined_15y_decision.csv
           retention-days: 30
