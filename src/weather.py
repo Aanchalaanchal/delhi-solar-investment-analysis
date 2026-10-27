@@ -7,8 +7,9 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-DELHI_LAT = 28.6139
-DELHI_LON = 77.2090
+# Approximate Vasant Vihar neighborhood center; NOT property coordinates.
+DELHI_LAT = 28.56
+DELHI_LON = 77.16
 POWER_URL = "https://power.larc.nasa.gov/api/temporal/hourly/point"
 PARAMETERS = ("ALLSKY_SFC_SW_DWN", "T2M")
 
