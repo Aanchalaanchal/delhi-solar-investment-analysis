@@ -36,3 +36,13 @@ Run tests with `python -m pytest -q`.
 5. Add scenario analysis and a sourced investment research note.
 
 Never commit private household bills, precise floor plans or personal addresses.
+
+## Solar-resource data (next phase)
+
+Download historical hourly NASA POWER resource estimates for central New Delhi:
+
+```bash
+python -m scripts.download_weather --start 2023 --end 2025
+```
+
+The download writes `data/raw/nasa_power_delhi_hourly.csv`. See [data/SOURCES.md](data/SOURCES.md) for provenance and caveats. **Irradiance is not PV production**: tilt, temperature, shading, module/inverter performance and losses remain to be modeled. The dashboard currently uses an illustrative annual yield input rather than the downloaded data.
