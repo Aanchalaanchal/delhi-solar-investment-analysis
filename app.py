@@ -282,3 +282,17 @@ else:
             annual_yield_kwh_kw=typical_base if "typical_base" in locals() else 1414.733847)),
             use_container_width=True,hide_index=True)
 st.caption("The four floors have separate BRPL account holders. This combined-bill sensitivity cannot determine each meter's savings or confirm VNM eligibility. Enter each family's actual annual kWh in the four-meter section when available.")
+
+st.divider()
+st.header("Proposed building: central AC load planning")
+st.caption("Concept-stage electricity input assumptions, NOT equipment sizing or a prediction from the existing building bill.")
+from src.central_ac_load import CentralAC, future_building_load
+ac_input=st.number_input("Central AC total electrical input when operating (kW)",min_value=0.0,max_value=300.0,value=30.0,step=5.0)
+ac_hours=st.slider("Equivalent full-load hours per operating day",0.0,24.0,8.0,0.5)
+ac_days=st.slider("Operating days per year",0,366,240)
+family_load=st.number_input("Other annual electricity demand per family (kWh, excluding central AC)",min_value=0.0,max_value=100000.0,value=12000.0,step=1000.0)
+common_other=st.number_input("Other shared annual electricity demand (kWh)",min_value=0.0,max_value=100000.0,value=4000.0,step=1000.0)
+ac_load=future_building_load([family_load]*4,CentralAC(ac_input,ac_hours,ac_days),common_other)
+st.metric("Illustrative annual central AC electricity",f'{ac_load["central_ac_kwh"]:,.0f} kWh')
+st.metric("Illustrative total future building electricity",f'{ac_load["total_annual_kwh"]:,.0f} kWh')
+st.caption("Electrical input kW is NOT cooling capacity in tons of refrigeration. Obtain design cooling load, equipment COP/IEER, zoning and diversity from the HVAC designer. Confirm whether the central plant uses a separate common BRPL meter or is billed to family accounts before assigning solar credits.")
