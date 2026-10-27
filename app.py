@@ -195,3 +195,36 @@ if weather_path.exists():
 else:
     st.info("Historical weather CSV not yet downloaded. Run: python -m scripts.download_weather --start 2023 --end 2025")
     st.caption("No historical kWh results are shown until actual data are available.")
+
+st.divider()
+st.header("Four-family investment decision: does the canopy pay?")
+st.caption("Reference weather yield: 2023–2025 NASA POWER workflow mean (1,414.73 kWh/kW). Tariff, consumption, roof areas and structural premiums are unverified scenario inputs.")
+from src.canopy_business_case import compare_designs, sensitivity_grid
+family_annual=st.number_input("Total annual demand for all four families (kWh)",min_value=4000.0,
+    max_value=200000.0,value=48000.0,step=4000.0)
+family_tariff=st.number_input("Effective avoided electricity tariff (₹/kWh)",min_value=0.0,
+    max_value=30.0,value=7.0,step=0.5,key="family_tariff")
+family_premium=st.number_input("Canopy extra construction premium (₹/kW)",min_value=0.0,
+    max_value=100000.0,value=20000.0,step=5000.0,key="family_premium")
+family_rows=compare_designs(annual_demand_kwh=family_annual,tariff_inr_kwh=family_tariff,
+    canopy_premium_inr_kw=family_premium,canopy_footprint_m2=canopy_area,
+    canopy_coverage_fraction=canopy_coverage,canopy_shade_loss=canopy_shade,
+    base_install_inr_kw=installed_cost,discount_rate=discount,
+    annual_yield_kwh_kw=typical_base if weather_path.exists() and "typical_base" in locals() else 1414.733847)
+st.dataframe(pd.DataFrame(family_rows),use_container_width=True,hide_index=True)
+incremental=family_rows[1]["incremental_npv_vs_final_inr"]
+st.metric("Canopy incremental NPV vs Final Plan without canopy",f"₹{incremental:,.0f}")
+if incremental>0:
+    st.success("The canopy adds modeled financial value under these assumptions.")
+elif incremental<0:
+    st.warning("The canopy reduces modeled financial value under these assumptions.")
+else:
+    st.info("The canopy does not change the selected optimal installation under these assumptions.")
+grid_rows=sensitivity_grid(canopy_footprint_m2=canopy_area,
+    canopy_coverage_fraction=canopy_coverage,canopy_shade_loss=canopy_shade,
+    base_install_inr_kw=installed_cost,discount_rate=discount,
+    annual_yield_kwh_kw=typical_base if weather_path.exists() and "typical_base" in locals() else 1414.733847)
+grid_df=pd.DataFrame(grid_rows)
+st.subheader("Sensitivity: demand, tariff and canopy premium")
+st.dataframe(grid_df,use_container_width=True,hide_index=True)
+st.caption("These results assume annual offset of generation up to annual demand, with no export value, no subsidy, and no hourly self-consumption matching. Four households may have separate meters; financial aggregation may be inappropriate. Do not treat the optimum as a procurement recommendation.")
