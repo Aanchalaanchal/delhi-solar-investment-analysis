@@ -58,3 +58,12 @@ Separately, the dashboard has a user-selected annual loss on **canopy panel gene
 This is a scenario stress test, not hourly solar-position modeling or 3D ray tracing. Shadow azimuth, module orientation, local obstacles, seasonal variations, neighboring buildings, electrical string effects, panel temperature and canopy wind uplift are not represented. In particular, shade on the occupied terrace underneath does not imply shade on panels above.
 
 No property-identifying architectural PDFs are committed to the public repository.
+
+
+## Vasant Vihar hourly solar geometry (October 2026 update)
+
+The dashboard calculates astronomical solar elevation and azimuth for approximate Vasant Vihar neighborhood coordinates (28.56° N, 77.16° E) using a NOAA-style equation-of-time and solar-declination approximation. Coordinates are **not** the property address. Monthly charts show daylight-hour sampling and maximum daily solar elevation; selectable dates show direct-beam incidence geometry for south, southeast, southwest, east and west module azimuths and a selectable tilt.
+
+The orientation curves are dimensionless and should **not** be interpreted as irradiance or PV energy. The existing three-way financial comparison remains based on manually selected annual yield, not these curves. Roof-level shadows, canopy panel shadows, module spacing, neighboring structures, irradiance, and Delhi metering/tariff rules have not been verified.
+
+To produce weather-adjusted PV estimates, next download NASA POWER hourly data at the neighborhood coordinates and implement an irradiance transposition/PV loss model. To assess shade, obtain obstruction heights/locations and an engineer-approved roof/canopy layout. Exact house address and original PDFs remain excluded from the public repository.
