@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import csv
 import math
 from pathlib import Path
-from src.integrated_feasibility import HVACS,ROOFS,DESIGN_TR,COOLING_FLH,PV_YIELD,dispatch,hourly_profiles
+from src.integrated_feasibility import HVAC,HVACS,ROOFS,DESIGN_TR,COOLING_FLH,PV_YIELD,dispatch,hourly_profiles
 
 @dataclass(frozen=True)
 class Case:
@@ -54,9 +54,8 @@ def solar_case(hvac,roof,case,capacity_kw):
     load,pv=hourly_profiles(hvac,capacity_kw,canopy_kw,canopy_loss)
     # AC demand scenario varies cooling only; non-AC 52,000 kWh remains constant.
     if case.ac_hours_multiplier!=1:
-        baseline=52000/8760
-        load=[baseline+(v-baseline)*case.ac_hours_multiplier for v in load]
-        # This approximation adjusts the *entire* time-variable load; not a measured profile.
+        baseline,_=hourly_profiles(HVAC(hvac.name,1e12,hvac.capex_low_per_tr,hvac.capex_high_per_tr),0)
+        load=[b+(v-b)*case.ac_hours_multiplier for v,b in zip(load,baseline)]
     pv=[v*case.solar_yield_multiplier for v in pv]
     d=dispatch(load,pv,case.export_fraction)
     capex=capacity_kw*case.pv_cost_kw+canopy_kw*20000
