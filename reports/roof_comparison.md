@@ -28,3 +28,20 @@ The terrace plan depicts a comparatively open roof, with lift/stair access, a sm
 Obtain a dimensioned terrace CAD file or scaled PDF, confirm whether the furnished terrace must remain clear, survey rooftop obstructions and heights, and confirm separate/common electricity meters. Validate any derived solar array layout with a licensed installer and structural engineer.
 
 **Privacy:** Original PDFs contain property-identifying details and are intentionally excluded from this public repository.
+
+
+## Design A option: elevated canopy over part of the furnished terrace
+
+A separate scenario models PV mounted above part of the leisure area, preserving potential activity space below. This is not part of the confirmed architectural design.
+
+Illustrative defaults:
+- Additional canopy footprint: 40 m², assumed non-overlapping with the 100 m² base usable roof
+- PV coverage of canopy footprint: 75%
+- Area requirement: 8 m²/kW
+- Additional PV capacity ceiling: 3.75 kW
+- Additional structural/mounting premium: ₹20,000 per canopy kW, unquoted
+- Combined capacity ceiling: 16.25 kW (not a layout-verified or permitted capacity)
+
+The dashboard's financial model allocates the premium only to the capacity above the base-roof ceiling. It assumes identical annual PV yield for base and canopy modules. It does not simulate canopy height, shading, airflow, solar azimuth, drainage, access, structural loading, waterproofing, wind uplift, permissions or usable clearance below. All require a design-stage assessment.
+
+Do not add the canopy footprint to base area if the spaces overlap: that would double-count roof surface.
