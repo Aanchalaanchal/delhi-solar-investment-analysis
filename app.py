@@ -296,3 +296,20 @@ ac_load=future_building_load([family_load]*4,CentralAC(ac_input,ac_hours,ac_days
 st.metric("Illustrative annual central AC electricity",f'{ac_load["central_ac_kwh"]:,.0f} kWh')
 st.metric("Illustrative total future building electricity",f'{ac_load["total_annual_kwh"]:,.0f} kWh')
 st.caption("Electrical input kW is NOT cooling capacity in tons of refrigeration. Obtain design cooling load, equipment COP/IEER, zoning and diversity from the HVAC designer. Confirm whether the central plant uses a separate common BRPL meter or is billed to family accounts before assigning solar credits.")
+
+st.divider()
+st.header("Proposed five-meter plan: four families + common services")
+st.caption("The common meter is a proposal, not an existing approved connection. Shared PV self-use is modeled first; transferring surplus credits to family meters is conditional on BRPL approval.")
+from src.five_meter_plan import FiveMeterPlan,solar_credit_allocation
+five_plan=FiveMeterPlan(tuple(meter_demands),CentralAC(ac_input,ac_hours,ac_days),common_other)
+five_loads=five_plan.summary()
+st.dataframe(pd.DataFrame([{"Meter":k,"Estimated annual kWh":v} for k,v in five_loads.items()]),
+    hide_index=True,use_container_width=True)
+pv_kw_five=st.slider("Shared solar capacity for five-meter study (kW)",0.5,30.0,16.0,0.5,key="five_meter_pv")
+vnm_approved=st.checkbox("Scenario only: assume BRPL approves surplus allocation via VNM",value=False)
+credit=solar_credit_allocation(five_loads,pv_kw_five*(typical_base if "typical_base" in locals() else 1414.733847),
+    approved_vnm=vnm_approved,family_shares=tuple(x/100 for x in meter_shares) if abs(sum(meter_shares)-100)<1e-6 else (.25,.25,.25,.25))
+st.dataframe(pd.DataFrame([{"Meter":k,"Illustrative annual credited kWh":v}
+    for k,v in credit["credited_kwh_by_meter"].items()]),hide_index=True,use_container_width=True)
+st.metric("Illustrative credited annual solar energy",f'{credit["total_modeled_credited_kwh"]:,.0f} kWh')
+st.caption("Annual matching is NOT actual daytime self-consumption. BRPL eligibility, exported-energy credits, sanctioned load and final meter wiring must be confirmed. Use hourly load curves and BRPL settlement rules before investment.")
