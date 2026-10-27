@@ -66,3 +66,25 @@ roof_rows=[{"Design":x["scenario"].title,
            for x in roof_comparisons]
 st.dataframe(pd.DataFrame(roof_rows),use_container_width=True,hide_index=True)
 st.caption("This comparison assumes the same annual demand and tariff inputs for both designs; actual separate-meter allocation remains unresolved.")
+
+
+st.divider()
+st.header("Final Plan: elevated solar canopy above part of the terrace")
+st.caption("A canopy may preserve seating below panels. These are feasibility assumptions, not an approved structural design.")
+from src.roof_scenarios import analyze_elevated_canopy
+canopy_area=st.slider("Additional canopy footprint above leisure space (m²)",0,120,40,5)
+canopy_coverage=st.slider("Canopy PV coverage (%)",25,100,75,5)/100
+canopy_premium=st.number_input("Extra canopy structural/installation premium (₹/kW)",0.0,100000.0,20000.0,1000.0)
+final_base=roof_comparisons[0]["scenario"]
+canopy_result=analyze_elevated_canopy(final_base,a,canopy_area,canopy_coverage,canopy_premium)
+p1,p2,p3=st.columns(3)
+p1.metric("Base roof capacity ceiling",f'{canopy_result["base_limit_kw"]:.1f} kW')
+p2.metric("Additional canopy capacity ceiling",f'{canopy_result["canopy_limit_kw"]:.1f} kW')
+p3.metric("Combined capacity ceiling",f'{canopy_result["total_limit_kw"]:.1f} kW')
+if canopy_result["best"]:
+    st.write(f'Highest modeled positive-NPV option: **{canopy_result["best"]["capacity_kw"]:.1f} kW** '
+             f'(including **{canopy_result["best"]["canopy_kw"]:.1f} kW** on the canopy), '
+             f'NPV **₹{canopy_result["best"]["npv_inr"]:,.0f}**.')
+else:
+    st.info("No positive-NPV system under the current canopy assumptions.")
+st.caption("Canopy footprint must be outside the base PV-usable area. The model uses a blended cost premium and does not account for column placement, wind uplift, shade, fire access, waterproofing, permissions, or structural loads.")
