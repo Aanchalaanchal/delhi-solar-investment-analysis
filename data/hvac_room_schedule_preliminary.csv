@@ -1,0 +1,25 @@
+floor,zone,area_sqft,area_basis,conditioning,notes
+Ground,Bedroom 1,221,13 x 17,yes,plan page 2
+Ground,Bedroom 2,251,20 ft 11 in x 12 ft,yes,plan page 2
+Ground,Bedroom 3,180,16 ft 4 in x 11 ft,yes,plan page 2
+Ground,Bedroom 4,320,approx 16 ft 4.5 in x 19 ft 7.5 in,yes,OCR fractional-inch glyph uncertain
+Ground,Drawing and dining,443,27 ft 8 in x 16 ft,yes,plan page 2
+Ground,Kitchen,219,16 ft 10 in x 13 ft,conditional,exclude from primary cooled total pending kitchen ventilation design
+First,Bedroom 2,196,approx 16 ft 4.5 in x 12 ft,yes,plan page 3
+First,Bedroom 3,264,20 ft 4 in x 13 ft,yes,plan page 3
+First,Bedroom 4,239,approx 14 ft 0.5 in x 17 ft,yes,plan page 3
+First,Master bedroom,261,approx 13 ft x 20 ft 2.5 in,yes,plan page 3
+First,Drawing room,491,approx 31 ft 0.5 in x 15 ft 10 in,yes,plan page 3
+First,Dining,171,approx 16 ft 4.5 in x 10 ft 5 in,yes,plan page 3
+First,Kitchen,200,19 ft x 10 ft 6 in,conditional,exclude from primary cooled total pending kitchen ventilation design
+Second,Bedroom 2,196,approx 16 ft 4.5 in x 12 ft,yes,plan page 4
+Second,Bedroom 3,264,20 ft 4 in x 13 ft,yes,plan page 4
+Second,Bedroom 4,239,approx 14 ft 0.5 in x 17 ft,yes,plan page 4
+Second,Master bedroom,261,approx 13 ft x 20 ft 2.5 in,yes,plan page 4 repeated layout needs visual confirmation
+Second,Drawing room,491,approx 31 ft 0.5 in x 15 ft 10 in,yes,plan page 4 repeated layout needs visual confirmation
+Second,Dining,171,approx 16 ft 4.5 in x 10 ft 5 in,yes,plan page 4 repeated layout needs visual confirmation
+Second,Kitchen,200,19 ft x 10 ft 6 in,conditional,exclude from primary cooled total pending kitchen ventilation design
+Third,Bedroom 2,196,approx 16 ft 4.5 in x 12 ft,yes,plan page 5
+Third,Bedroom 3,264,approx 20 ft 4.5 in x 13 ft,yes,plan page 5
+Third,Bedroom 4,239,approx 14 ft 0.5 in x 17 ft,yes,plan page 5
+Third,Kitchen,197,18 ft 9 in x 10 ft 6 in,conditional,exclude from primary cooled total pending kitchen ventilation design
