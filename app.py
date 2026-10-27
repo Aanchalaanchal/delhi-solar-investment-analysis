@@ -227,42 +227,11 @@ grid_rows=sensitivity_grid(canopy_footprint_m2=canopy_area,
 grid_df=pd.DataFrame(grid_rows)
 st.subheader("Sensitivity: demand, tariff and canopy premium")
 st.dataframe(grid_df,use_container_width=True,hide_index=True)
-st.caption("These results assume annual offset of generation up to annual demand, with no export value, no subsidy, and no hourly self-consumption matching. Four households may have separate meters; financial aggregation may be inappropriate. Do not treat the optimum as a procurement recommendation.")
-
-st.divider()
-st.header("Four separate account holders — proposed VNM allocation")
-st.caption("Each floor has its own electricity account holder. VNM is a candidate arrangement, subject to DISCOM approval and an allocation agreement. This model is not an official billing calculator.")
-from src.four_meter_allocation import Meter, allocate_vnm
-four_cols=st.columns(4)
-meter_demands=[]
-meter_shares=[]
-for i,col in enumerate(four_cols):
-    with col:
-        st.subheader(f"Family {i+1}")
-        meter_demands.append(st.number_input("Annual demand (kWh)",min_value=0.0,
-            max_value=100000.0,value=12000.0,step=1000.0,key=f"meter_demand_{i}"))
-        meter_shares.append(st.number_input("Ownership / credit allocation (%)",min_value=0.0,
-            max_value=100.0,value=25.0,step=5.0,key=f"meter_share_{i}"))
-if abs(sum(meter_shares)-100)>0.00001:
-    st.error("Four credit shares must sum to 100%.")
-else:
-    meters=[Meter(f"Family {i+1}",meter_demands[i],meter_shares[i]/100) for i in range(4)]
-    from src.four_meter_allocation import allocate_vnm
-    shared_kw=st.slider("Shared PV capacity (kW)",0.5,30.0,16.0,0.5)
-    shared_canopy_kw=st.slider("Of which: canopy panels (kW)",0.0,shared_kw,
-        min(3.5,shared_kw),0.5)
-    meter_results=allocate_vnm(shared_kw,meters,
-        replace(a,annual_kwh_per_kw=typical_base if "typical_base" in locals() else 1414.733847),
-        canopy_kw=shared_canopy_kw,canopy_premium_inr_per_kw=family_premium,
-        canopy_generation_loss_fraction=canopy_shade)
-    st.dataframe(pd.DataFrame(meter_results),use_container_width=True,hide_index=True)
-    st.metric("Total illustrative shared-system NPV",
-        f'₹{sum(r["npv_inr"] for r in meter_results):,.0f}')
-st.caption("Each meter's modeled savings are capped at its own annual demand. Actual VNM billing, tariff slabs, allocation agreement, approved plant capacity, grid charges and eligibility must be verified with the serving DISCOM.")
+st.caption("These results assume annual offset of generation up to annual demand, with no export value, no subsidy, and no hourly self-consumption matching. One combined meter is proposed, subject to BRPL approval and sanctioned-load requirements. Do not treat the optimum as a procurement recommendation.")
 
 st.divider()
 st.header("Existing building bill — historical benchmark only")
-st.caption("₹80,000–₹1,00,000/month is for the EXISTING building, before reconstruction into four separate family floors. This is a historical benchmark, not a forecast of the future building. Bill amounts do not reveal actual kWh.")
+st.caption("₹80,000–₹1,00,000/month is for the EXISTING building, before reconstruction into four family floors with one combined meter. This is a historical benchmark, not a forecast of the future building. Bill amounts do not reveal actual kWh.")
 from src.bill_based_demand import bill_scenarios,canopy_bill_scenarios
 bill_min=st.number_input("Combined monthly bill — low (₹)",min_value=0,value=80000,step=5000)
 bill_max=st.number_input("Combined monthly bill — high (₹)",min_value=0,value=100000,step=5000)
@@ -295,21 +264,24 @@ common_other=st.number_input("Other shared annual electricity demand (kWh)",min_
 ac_load=future_building_load([family_load]*4,CentralAC(ac_input,ac_hours,ac_days),common_other)
 st.metric("Illustrative annual central AC electricity",f'{ac_load["central_ac_kwh"]:,.0f} kWh')
 st.metric("Illustrative total future building electricity",f'{ac_load["total_annual_kwh"]:,.0f} kWh')
-st.caption("Electrical input kW is NOT cooling capacity in tons of refrigeration. Obtain design cooling load, equipment COP/IEER, zoning and diversity from the HVAC designer. Confirm whether the central plant uses a separate common BRPL meter or is billed to family accounts before assigning solar credits.")
+st.caption("Electrical input kW is NOT cooling capacity in tons of refrigeration. Obtain design cooling load, equipment COP/IEER, zoning and diversity from the HVAC designer. The current proposal is one combined BRPL meter for all floors and common services; confirm eligibility and sanctioned load with BRPL.")
+
 
 st.divider()
-st.header("Proposed five-meter plan: four families + common services")
-st.caption("The common meter is a proposal, not an existing approved connection. Shared PV self-use is modeled first; transferring surplus credits to family meters is conditional on BRPL approval.")
-from src.five_meter_plan import FiveMeterPlan,solar_credit_allocation
-five_plan=FiveMeterPlan(tuple(meter_demands),CentralAC(ac_input,ac_hours,ac_days),common_other)
-five_loads=five_plan.summary()
-st.dataframe(pd.DataFrame([{"Meter":k,"Estimated annual kWh":v} for k,v in five_loads.items()]),
-    hide_index=True,use_container_width=True)
-pv_kw_five=st.slider("Shared solar capacity for five-meter study (kW)",0.5,30.0,16.0,0.5,key="five_meter_pv")
-vnm_approved=st.checkbox("Scenario only: assume BRPL approves surplus allocation via VNM",value=False)
-credit=solar_credit_allocation(five_loads,pv_kw_five*(typical_base if "typical_base" in locals() else 1414.733847),
-    approved_vnm=vnm_approved,family_shares=tuple(x/100 for x in meter_shares) if abs(sum(meter_shares)-100)<1e-6 else (.25,.25,.25,.25))
-st.dataframe(pd.DataFrame([{"Meter":k,"Illustrative annual credited kWh":v}
-    for k,v in credit["credited_kwh_by_meter"].items()]),hide_index=True,use_container_width=True)
-st.metric("Illustrative credited annual solar energy",f'{credit["total_modeled_credited_kwh"]:,.0f} kWh')
-st.caption("Annual matching is NOT actual daytime self-consumption. BRPL eligibility, exported-energy credits, sanctioned load and final meter wiring must be confirmed. Use hourly load curves and BRPL settlement rules before investment.")
+st.header("One combined BRPL meter — proposed building solar sizing")
+st.caption("One proposed electricity connection for all four floors, central AC, lifts and shared services. Conventional net metering is the primary arrangement to verify with BRPL.")
+from src.canopy_business_case import compare_designs
+one_meter_rows=compare_designs(
+    annual_demand_kwh=ac_load["total_annual_kwh"],
+    tariff_inr_kwh=family_tariff,
+    canopy_premium_inr_kw=family_premium,
+    canopy_footprint_m2=canopy_area,
+    canopy_coverage_fraction=canopy_coverage,
+    canopy_shade_loss=canopy_shade,
+    base_install_inr_kw=installed_cost,
+    discount_rate=discount,
+    annual_yield_kwh_kw=typical_base if "typical_base" in locals() else 1414.733847)
+st.dataframe(pd.DataFrame(one_meter_rows),hide_index=True,use_container_width=True)
+st.metric("Modeled canopy incremental NPV for combined meter",
+    f'₹{one_meter_rows[1]["incremental_npv_vs_final_inr"]:,.0f}')
+st.caption("This is an annual-offset approximation, not a BRPL net-metering bill simulation. Verify approved single-meter connection, sanctioned load, PV capacity limits, export settlement, and actual roof space before purchasing.")
