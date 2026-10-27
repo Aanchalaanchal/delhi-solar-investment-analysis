@@ -1,0 +1,29 @@
+name: Integrated HVAC and solar feasibility
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/integrated_feasibility.py"
+      - "src/hvac_room_schedule.py"
+      - "data/hvac_room_schedule_preliminary.csv"
+      - "tests/test_integrated_feasibility.py"
+      - ".github/workflows/integrated-feasibility.yml"
+  workflow_dispatch:
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: python -m src.integrated_feasibility
+      - uses: actions/upload-artifact@v4
+        with:
+          name: single-meter-hvac-solar-feasibility
+          path: |
+            reports/generated/scenario_matrix.csv
+            reports/generated/results.json
+          retention-days: 30
