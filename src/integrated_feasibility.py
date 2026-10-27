@@ -10,12 +10,14 @@ import json
 import math
 from pathlib import Path
 
+from src.educated_guesses import DEFAULT as GUESSES
+
 PV_YIELD=1414.733847  # Existing NASA POWER / pvlib 2023-25 workflow reference
-FLOOR_NON_AC_KWH=12000.0  # Each of four family floors, assumed
-OTHER_COMMON_KWH=4000.0
-DESIGN_TR=40.0  # Engineering sizing NOT established
-COOLING_FLH=924.0  # 7 hours/day * 240 days * 55% average loading
-TARIFF=9.0  # Effective avoided rate, NOT BRPL slab tariff
+FLOOR_NON_AC_KWH=GUESSES.family_non_ac_kwh_per_year  # Each of four family floors, assumed
+OTHER_COMMON_KWH=GUESSES.common_kwh_per_year
+DESIGN_TR=GUESSES.rounded_concept_tr  # Concept-only educated guess; not certified
+COOLING_FLH=GUESSES.annual_cooling_equivalent_full_load_hours  # 7 hours/day * 240 days * 55% average loading
+TARIFF=GUESSES.avoided_tariff_inr_kwh  # Effective avoided rate, NOT BRPL slab tariff
 SOLAR_COST_KW=50000.0  # Delhi solar portal >10kW indicative price
 CANOPY_PREMIUM_KW=20000.0  # unquoted structural allowance
 DISCOUNT=.09
@@ -41,9 +43,9 @@ HVACS=(
     HVAC("Inverter ducted splits",3.3,55000,100000),
 )
 ROOFS=(
-    ("Furnished roof",12.5,0.0,0.0),
-    ("Furnished roof + elevated canopy",16.0,3.5,.05),
-    ("Open terrace alternative",17.5,0.0,0.0),
+    ("Furnished roof",GUESSES.furnished_solar_kw,0.0,0.0),
+    ("Furnished roof + elevated canopy",GUESSES.furnished_solar_kw+GUESSES.canopy_solar_kw,GUESSES.canopy_solar_kw,.05),
+    ("Open terrace alternative",GUESSES.alternate_solar_kw,0.0,0.0),
 )
 MONTH_DAYS=(31,28,31,30,31,30,31,31,30,31,30,31)
 # Normalized representative monthly distribution, not observed monthly NASA POWER series.
