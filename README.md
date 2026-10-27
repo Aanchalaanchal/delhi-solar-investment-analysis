@@ -40,3 +40,7 @@ streamlit run app.py
 
 ## No-bid financial decision (latest)
 [Assumption-based investment report](reports/NO_BID_INVESTMENT_DECISION.md) compares 15-year discounted HVAC ownership costs, 25-year solar NPV/IRR/payback, and combined 15-year investment cost under low/base/high planning scenarios. Run `python -m src.no_bid_investment_analysis` to export three scenario tables. These are not vendor quotations or engineering certifications.
+
+## Final calculated findings
+
+See [Final numerical results and recommendation](reports/FINAL_NUMERICAL_RESULTS.md). The findings were independently recalculated against the documented model formulas, but the repository's own CI run has not been confirmed. The document clearly separates planning assumptions from engineering approvals.
