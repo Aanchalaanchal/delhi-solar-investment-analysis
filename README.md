@@ -37,3 +37,6 @@ streamlit run app.py
 - `reports/FINAL_FEASIBILITY_STUDY.md`: decision summary, provenance and remaining approval gates.
 
 **Do not use this analysis alone to order equipment.** Obtain CAD dimensions, HVAC load calculations, BRPL connection confirmation and vendor quotations.
+
+## No-bid financial decision (latest)
+[Assumption-based investment report](reports/NO_BID_INVESTMENT_DECISION.md) compares 15-year discounted HVAC ownership costs, 25-year solar NPV/IRR/payback, and combined 15-year investment cost under low/base/high planning scenarios. Run `python -m src.no_bid_investment_analysis` to export three scenario tables. These are not vendor quotations or engineering certifications.
