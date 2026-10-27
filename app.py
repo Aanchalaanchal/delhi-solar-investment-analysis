@@ -115,3 +115,31 @@ st.plotly_chart(px.bar(comparison_df,x="Design",y="NPV (₹)",
                       title="Illustrative 25-year NPV across three designs"),
                 use_container_width=True)
 st.caption("No-installation is represented as 0 kW and ₹0 NPV when all tested PV options have negative NPV. The comparison does not establish actual buildable capacity.")
+
+st.divider()
+st.header("Vasant Vihar: seasonal sun position")
+st.caption("Astronomical hourly sun-path geometry for approximate neighborhood coordinates (28.56°N, 77.16°E). No precise address is stored.")
+from src.solar_position import monthly_sun_summary, hourly_sun_position, incident_beam_factor
+sun_year=st.selectbox("Sun-path year",[2025,2026,2027],index=1)
+seasonal=monthly_sun_summary(sun_year)
+st.plotly_chart(px.line(seasonal,x="month",y="mean_daylight_hours",markers=True,
+                        title="Average sampled daylight hours by month"),use_container_width=True)
+st.plotly_chart(px.line(seasonal,x="month",y="mean_daily_peak_elevation_deg",markers=True,
+                        title="Average daily maximum solar elevation by month"),use_container_width=True)
+st.caption("Sunrise/sunset approximated at hourly resolution; day-length estimates may differ by up to about one hour.")
+st.subheader("Panel orientation: direct-beam geometric exposure")
+tilt=st.slider("Panel tilt (degrees)",0,60,20,1)
+orientation_date=st.date_input("Sun-path comparison date",value=pd.Timestamp("2026-03-21").date())
+hours=pd.date_range(pd.Timestamp(orientation_date,tz="Asia/Kolkata"),
+                    periods=24,freq="h").tz_convert("UTC")
+sun=hourly_sun_position(hours)
+sun["local_hour"]=sun["timestamp_utc"].dt.tz_convert("Asia/Kolkata").dt.hour
+for direction,azimuth in [("South",180),("Southeast",135),("Southwest",225),("East",90),("West",270)]:
+    sun[direction]=incident_beam_factor(sun["elevation_deg"],sun["azimuth_deg"],tilt,azimuth)
+orientation=pd.melt(sun,id_vars="local_hour",
+                    value_vars=["South","Southeast","Southwest","East","West"],
+                    var_name="Panel direction",value_name="Direct-beam incidence factor")
+st.plotly_chart(px.line(orientation,x="local_hour",y="Direct-beam incidence factor",
+                        color="Panel direction",title="Orientation geometry for a selected day"),
+                use_container_width=True)
+st.caption("These curves are unitless geometric factors, not kWh. They exclude clouds, diffuse irradiance, roof obstruction shading, dust, and PV system losses. The three design NPV comparisons above still use user-entered annual yield.")
